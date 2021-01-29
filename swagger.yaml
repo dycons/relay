@@ -1,0 +1,118 @@
+consumes:
+- application/json
+info:
+  title: A microservice for relaying consent-related API requests
+  description: A prototype microservice that relays requests between the study domain and the DyCons administration domain.
+  version: 0.0.1
+basePath: /v0
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0" # version used by go-swagger tool
+
+# TODO add authorization to each endpoint
+# Since we infer specific information from the auth tokens, perhaps they should go in the query string? Research.
+
+security:
+  - ApiKeyAuth:
+
+paths:
+  /consents:
+    get:
+      operationId: get_all_consents
+      summary: Get all default and project consents for a participant
+      responses:
+        200:
+          description: Return default and project consents
+          schema:
+            allOf:
+              - $ref: '#/definitions/DefaultConsent'
+              - type: array
+                items:
+                  $ref: '#/definitions/ProjectConsent'
+        401:
+          $ref: '#/responses/Unauthorized'
+        # TODO move 500 to responses section as well?
+        500:
+          $ref: '#/responses/InternalError'
+
+responses:
+  # TODO need HTTPS
+  # TODO needs both API keys and (at least) basic auth, one for authorizing theservice making the request and the other for ID'ing the human
+  Unauthorized:
+    description: Authorization failed
+    headers:
+      WWW-Authenticate:
+        type: object
+        properties:
+          type: # TODO read fully: https://stackoverflow.com/questions/26982701/create-a-swagger-2-0-defined-property-with-a-specific-hard-coded-value
+            type: string
+            enum: [Basic]
+            description: The expected Authentication type/scheme.
+            example: "Basic"
+  InternalError:
+    description: Internal error - request not fulfilled
+    schema:
+      $ref: "#/definitions/Error"
+
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: X-API-Key
+
+definitions:
+  Error:
+    type: object
+    required:
+      - code
+      - message
+    properties: 
+      code:
+        type: integer
+        minimum: 100000
+        maximum: 599999
+        description: Computer-readable error code, format 'HHHDDD' where HHH is the HTTP code and DDD is the error-specific detail codes
+        example: 500001
+      message:
+        type: string
+        description: Human-readable informational error message
+        example: "Forbidden to modify existing default consent on post"
+  DefaultConsent:
+    type: object
+    properties:
+      genetic_consent_style:
+        type: string
+        enum: [OO, OI, SUF]
+        description: Specifies default consent choices for genetic data. Options- OO (Opt-In) | OI (Opt-Out) | SUF (Secondary Use Forbidden)
+        example: "SUF"
+      clinical_consent_style:
+        type: string
+        enum: [OO, OI, SUF]
+        description: Specifies default consent choices for clinical data. Options- OO (Opt-In) | OI (Opt-Out) | SUF (Secondary Use Forbidden)
+        example: "SUF"
+    default:
+      genetic_consent_style: "SUF"
+      clinical_consent_style: "SUF"
+  ProjectConsent:
+    type: object
+    required:
+      - project_application_id
+      - genetic_consent
+      - clinical_consent
+    properties:
+      project_application_id:
+        type: integer
+        format: int32
+        description: REMS identifier that links this consent metadata to the secondary or tertiary data-using project that it pertains to
+        minimum: 0
+        example: 0
+      genetic_consent:
+        type: boolean
+        description: (T/F)- Participant has consented to having this project access their genetic data?
+        example: false
+      clinical_consent:
+        type: boolean
+        description: (T/F)- Participant has consented to having this project access their clinical data?
+        example: false
