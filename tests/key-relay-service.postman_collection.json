@@ -1,0 +1,85 @@
+{
+	"info": {
+		"_postman_id": "890cd41b-01b9-4976-8755-de2db72ca5bb",
+		"name": "key-relay-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Ping",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test that request succeeded",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"",
+							"// Test that response schema is valid ",
+							"const schema = {",
+							"    \"message:\": {\"type\": \"string\"},",
+							"};",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(responseData, schema)).to.be.true;",
+							"});",
+							"",
+							"// Test that response values equal the expected values",
+							"pm.test(\"Response values satisfy expectations\", () => {",
+							"    pm.expect(responseData.message).to.eql(\"pong\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}{{host}}/ping",
+					"host": [
+						"{{scheme}}{{host}}"
+					],
+					"path": [
+						"ping"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "scheme",
+			"value": "http://"
+		},
+		{
+			"key": "host",
+			"value": "0.0.0.0:3006"
+		}
+	]
+}
