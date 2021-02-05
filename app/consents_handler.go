@@ -1,8 +1,10 @@
 package app
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
-	"strings"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,13 +30,27 @@ type ParticipantsRequestHeader struct {
 }
 
 func ConsentsGet(ctx *gin.Context) {
-	_, err := ExtracBearerToken(ctx)
+	jwt, err := ExtractBearerToken(ctx)
 	if err != nil {
-		// TODO respond with 401
-		panic(err)
+		renderError(
+			http.StatusUnauthorized,
+			err,
+			ctx,
+		)
+		return
 	}
 
 	// Decode Bearer Token
+	_, err = ExtractAdminID(jwt)
+	if err != nil {
+		err = fmt.Errorf("Unable to properly decode JWT: %s", err)
+		renderError(
+			http.StatusUnauthorized,
+			err,
+			ctx,
+		)
+		return
+	}
 
 	// Return Consents
 	projectConsents := []ProjectConsent{
@@ -62,7 +78,16 @@ func ConsentsGet(ctx *gin.Context) {
 	)
 }
 
-func ExtracBearerToken(ctx *gin.Context) (*string, error) {
+func renderError(statusCode int, err error, ctx *gin.Context) {
+	ctx.JSON(statusCode, gin.H{
+		"error": gin.H{
+			"status":  statusCode,
+			"message": err.Error(),
+		},
+	})
+}
+
+func ExtractBearerToken(ctx *gin.Context) (*string, error) {
 	h := ParticipantsRequestHeader{}
 
 	err := ctx.ShouldBindHeader(&h)
@@ -70,7 +95,14 @@ func ExtracBearerToken(ctx *gin.Context) (*string, error) {
 		return nil, err
 	}
 
-	s := strings.Fields(h.AuthorizationHeader)
-	token := s[1]
+	r := regexp.MustCompile(`^(?P<Bearer>Bearer)\s{1}(?P<JWT>.+)$`)
+	match := r.MatchString(h.AuthorizationHeader)
+	if match != true {
+		return nil, errors.New("Authorization header must contain a Bearer token")
+	}
+
+	matches := r.FindSubmatch([]byte(h.AuthorizationHeader))
+
+	token := string(matches[2])
 	return &token, nil
 }
