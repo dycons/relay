@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,20 @@ type Consents struct {
 	ProjectConsents []ProjectConsent `json:"project_consents"`
 }
 
+type ParticipantsRequestHeader struct {
+	AuthorizationHeader string `header:"Authorization"`
+}
+
 func ConsentsGet(ctx *gin.Context) {
+	_, err := ExtracBearerToken(ctx)
+	if err != nil {
+		// TODO respond with 401
+		panic(err)
+	}
+
+	// Decode Bearer Token
+
+	// Return Consents
 	projectConsents := []ProjectConsent{
 		{
 			ProjectApplicationID: 1,
@@ -46,4 +60,17 @@ func ConsentsGet(ctx *gin.Context) {
 			ProjectConsents: projectConsents,
 		},
 	)
+}
+
+func ExtracBearerToken(ctx *gin.Context) (*string, error) {
+	h := ParticipantsRequestHeader{}
+
+	err := ctx.ShouldBindHeader(&h)
+	if err != nil {
+		return nil, err
+	}
+
+	s := strings.Fields(h.AuthorizationHeader)
+	token := s[1]
+	return &token, nil
 }
