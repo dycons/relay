@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d5da75ec-99d2-48cc-82e0-b12be56f24df",
+		"_postman_id": "e7e0f19f-0c4e-417d-82ac-ca5b5554faf1",
 		"name": "key-relay-service",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -19,12 +19,38 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"var jsonData = pm.response.json();",
+									"var responseData = pm.response.json();",
 									"pm.test(\"Has default consents \", function () {",
-									"    pm.expect(jsonData.default_consent).to.be.a(\"object\");",
+									"    pm.expect(responseData.default_consent).to.be.a(\"object\");",
 									"});",
 									"pm.test(\"Has project consents \", function () {",
-									"    pm.expect(jsonData.project_consents).to.be.a(\"array\");",
+									"    pm.expect(responseData.project_consents).to.be.a(\"array\");",
+									"});",
+									"",
+									"// WIP: Test that response schema is valid",
+									"// This test seems to pass no matter how I change the schema...?",
+									"const schema = {",
+									"    \"default_consent\": {",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"genetic_consent_style\": {\"type\": \"string\"},",
+									"            \"clinical_consent_style\": {\"type\": \"string\"}",
+									"        }",
+									"    },",
+									"    \"project_consents\": {",
+									"        \"type\": \"array\",",
+									"        \"items\": {",
+									"            \"type\": \"object\",",
+									"            \"properties\": {",
+									"                \"project_application_id\": {\"type\": \"int32\"},",
+									"                \"genetic_consent\": {\"type\": \"boolean\"},",
+									"                \"clinical_consent\": {\"type\": \"boolean\"}",
+									"            }",
+									"        }",
+									"    }",
+									"};",
+									"pm.test('Response schema is valid', function() {",
+									"    pm.response.to.have.jsonSchema(schema);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -62,13 +88,13 @@
 					"response": []
 				},
 				{
-					"name": "forbidden",
+					"name": "forbidden (no token)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
+									"pm.test(\"Status code is 401\", function () {",
 									"    pm.response.to.have.status(401);",
 									"});",
 									""
@@ -110,7 +136,7 @@
 			]
 		},
 		{
-			"name": "Ping",
+			"name": "Ping (no token)",
 			"event": [
 				{
 					"listen": "test",
