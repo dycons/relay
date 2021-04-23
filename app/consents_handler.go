@@ -20,8 +20,8 @@ type ProjectConsent struct {
 // DefaultConsent is a simple struct that enables the json marshalling and unmarshalling
 // as described by the API
 type DefaultConsent struct {
-	GeneticConsent  bool `json:"genetic_consent"`
-	ClinicalConsent bool `json:"clinical_consent"`
+	GeneticConsentStyle  string `json:"genetic_consent_style"`
+	ClinicalConsentStyle string `json:"clinical_consent_style"`
 }
 
 // Consents is a simple struct that enables the json marshalling and unmarshalling
@@ -85,8 +85,8 @@ func ConsentsGet(ctx *gin.Context) {
 		http.StatusOK,
 		Consents{
 			DefaultConsent: DefaultConsent{
-				GeneticConsent:  true,
-				ClinicalConsent: true,
+				GeneticConsentStyle:  "SUF",
+				ClinicalConsentStyle: "SUF",
 			},
 			ProjectConsents: projectConsents,
 		},
