@@ -77,7 +77,7 @@ func ConsentsGet(ctx *gin.Context) {
 		{
 			ProjectApplicationID: 2,
 			GeneticConsent:       true,
-			ClinicalConsent:      true,
+			ClinicalConsent:      false,
 		},
 	}
 
